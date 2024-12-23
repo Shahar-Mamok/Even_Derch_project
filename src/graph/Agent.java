@@ -1,4 +1,5 @@
-package Even_derch1;
+package graph;
+import graph.Agent;
 
 public interface Agent {
     String getName();

@@ -1,8 +1,8 @@
-package Even_derch1;
+package graph;
 
 import java.util.Random;
 
-import Even_derch1.TopicManagerSingleton.TopicManager;
+import graph.TopicManagerSingleton.TopicManager;
 
 public class MainTrain { // simple tests to get you going...
 

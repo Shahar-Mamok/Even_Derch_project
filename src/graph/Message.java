@@ -1,4 +1,4 @@
-package Even_derch1;
+package graph;
 import java.util.Date;
 
 public final class Message {
