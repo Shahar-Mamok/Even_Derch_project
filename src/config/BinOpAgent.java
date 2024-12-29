@@ -8,7 +8,7 @@ import graph.Topic;
 import graph.TopicManagerSingleton;
 import graph.TopicManagerSingleton.TopicManager;
 
-public class BinOpAgent {
+public class BinOpAgent implements Agent {
     private Agent agent;
     private String agentName;
     private String firstTopicName;
@@ -94,5 +94,25 @@ public class BinOpAgent {
         tm.getTopic(firstTopicName).unsubscribe(agent);
         tm.getTopic(secondTopicName).unsubscribe(agent);
         tm.getTopic(outputTopicName).removePublisher(agent);
+    }
+
+    @Override
+    public String getName() {
+        return "";
+    }
+
+    @Override
+    public void reset() {
+
+    }
+
+    @Override
+    public void callback(String topic, Message msg) {
+
+    }
+
+    @Override
+    public void close() {
+
     }
 }
