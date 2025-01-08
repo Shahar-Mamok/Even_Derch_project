@@ -1,9 +1,16 @@
 package graph;
 
+<<<<<<< HEAD
 import java.util.Random;
 
 import graph.TopicManagerSingleton.TopicManager;
 
+=======
+import graph.TopicManagerSingleton.TopicManager;
+
+import java.util.Random;
+
+>>>>>>> origin/master
 public class MainTrain { // simple tests to get you going...
 
 

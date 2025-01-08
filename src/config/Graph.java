@@ -1,11 +1,19 @@
 package config;
 
+<<<<<<< HEAD
 import java.util.*;
+=======
+>>>>>>> origin/master
 import graph.Agent;
 import graph.Topic;
 import graph.TopicManagerSingleton;
 import graph.TopicManagerSingleton.TopicManager;
 
+<<<<<<< HEAD
+=======
+import java.util.*;
+
+>>>>>>> origin/master
 public class Graph extends ArrayList<Node> {
     private HashMap<String, Node> nodeMap; // Maps names to Nodes for quick access
 

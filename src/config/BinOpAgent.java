@@ -1,14 +1,23 @@
 package config;
 
+<<<<<<< HEAD
 import java.util.function.BinaryOperator;
 
+=======
+>>>>>>> origin/master
 import graph.Agent;
 import graph.Message;
 import graph.Topic;
 import graph.TopicManagerSingleton;
 import graph.TopicManagerSingleton.TopicManager;
 
+<<<<<<< HEAD
 public class BinOpAgent implements Agent {
+=======
+import java.util.function.BinaryOperator;
+
+public class BinOpAgent {
+>>>>>>> origin/master
     private Agent agent;
     private String agentName;
     private String firstTopicName;
@@ -95,6 +104,7 @@ public class BinOpAgent implements Agent {
         tm.getTopic(secondTopicName).unsubscribe(agent);
         tm.getTopic(outputTopicName).removePublisher(agent);
     }
+<<<<<<< HEAD
 
     @Override
     public String getName() {
@@ -115,4 +125,6 @@ public class BinOpAgent implements Agent {
     public void close() {
 
     }
+=======
+>>>>>>> origin/master
 }
