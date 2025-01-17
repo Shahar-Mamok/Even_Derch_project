@@ -2,11 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-<<<<<<< HEAD
-      <module fileurl="file://$PROJECT_DIR$/Even_derchh.iml" filepath="$PROJECT_DIR$/Even_derchh.iml" />
-=======
-      <module fileurl="file://$PROJECT_DIR$/Even Derch project.iml" filepath="$PROJECT_DIR$/Even Derch project.iml" />
->>>>>>> origin/master
+      <module fileurl="file://$PROJECT_DIR$/.idea/Even_derchh.iml" filepath="$PROJECT_DIR$/.idea/Even_derchh.iml" />
     </modules>
   </component>
 </project>
