@@ -1,175 +1,89 @@
 package server;
 
-
-
 import java.io.*;
 import java.net.Socket;
+import java.net.ServerSocket;
 import java.util.Map;
 import java.util.concurrent.*;
-import java.net.ServerSocket;
 
 /**
- * A simple HTTP server implementation that manages and dispatches HTTP requests
- * to the appropriate servlets based on the request type and URI.
+ * A robust HTTP server implementation that handles concurrent requests using a thread pool.
+ * Supports GET, POST, and DELETE operations with URI-based routing to servlets.
+ * 
+ * @author Your Name
+ * @version 1.0
  */
 public class MyHTTPServer extends Thread implements HTTPServer {
+    // Servlet mappings for different HTTP methods
+    private final ConcurrentHashMap<String, Servlet> getServlets = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Servlet> postServlets = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Servlet> deleteServlets = new ConcurrentHashMap<>();
 
-    /** Concurrent map to manage servlets for GET,POST,DELETE requests. */
-    private ConcurrentHashMap<String, Servlet> getServlets = new ConcurrentHashMap<>();
-    private ConcurrentHashMap<String, Servlet> postServlets = new ConcurrentHashMap<>();
-    private ConcurrentHashMap<String, Servlet> deleteServlets = new ConcurrentHashMap<>();
-
-    /** Thread pool to handle multiple client connections concurrently. */
-    private ExecutorService requestHandlerPool;
-
-    /** Socket used to accept client connections. */
+    private final ExecutorService requestHandlerPool;
     private ServerSocket serverSocket;
-
-    /** Flag to indicate if the server should stop accepting requests. */
     private volatile boolean isServerStopped = false;
-
-    /** Port number on which the server listens for incoming connections. */
     private final int port;
-
-    /** Number of threads in the thread pool for handling requests. */
     private final int threadCount;
+    private static final int SOCKET_TIMEOUT = 1000;
+    private static final int REQUEST_DELAY = 125;
 
     /**
-     * Constructs a new HTTP server instance with the specified port and thread count.
+     * Creates a new HTTP server instance.
      *
-     * @param port The port number for the server to listen on.
-     * @param threadCount The number of threads in the thread pool.
+     * @param port The port to listen on
+     * @param threadCount Number of threads in the request handling pool
      */
     public MyHTTPServer(int port, int threadCount) {
-        // Initialize the thread pool with a fixed number of threads
-        requestHandlerPool = Executors.newFixedThreadPool(threadCount);
         this.port = port;
         this.threadCount = threadCount;
+        this.requestHandlerPool = Executors.newFixedThreadPool(threadCount);
     }
 
     /**
-     * Registers a servlet to handle requests for a specific HTTP command and URI.
+     * Registers a servlet for a specific HTTP method and URI pattern.
      *
-     * @param httpCommand The HTTP command (e.g., GET, POST, DELETE) for which the servlet will handle requests.
-     * @param uri The URI that the servlet will handle.
-     * @param servlet The servlet instance to handle the requests.
+     * @param httpCommand HTTP method (GET, POST, DELETE)
+     * @param uri URI pattern to match
+     * @param servlet Servlet instance to handle matching requests
      */
     public void addServlet(String httpCommand, String uri, Servlet servlet) {
-        if (uri == null || servlet == null) {
-            return;
-        }
+        if (uri == null || servlet == null) return;
 
-        httpCommand = httpCommand.toUpperCase();
-
-        switch (httpCommand) {
-            case "GET":
-                getServlets.put(uri, servlet);
-                break;
-            case "POST":
-                postServlets.put(uri, servlet);
-                break;
-            case "DELETE":
-                deleteServlets.put(uri, servlet);
-                break;
+        switch (httpCommand.toUpperCase()) {
+            case "GET" -> getServlets.put(uri, servlet);
+            case "POST" -> postServlets.put(uri, servlet);
+            case "DELETE" -> deleteServlets.put(uri, servlet);
         }
     }
 
     /**
-     * Removes a servlet that handles requests for a specific HTTP command and URI.
+     * Removes a servlet registration.
      *
-     * @param httpCommand The HTTP command (e.g., GET, POST, DELETE) for which the servlet was handling requests.
-     * @param uri The URI that the servlet was handling.
+     * @param httpCommand HTTP method
+     * @param uri URI pattern
      */
     public void removeServlet(String httpCommand, String uri) {
-        if (uri == null) {
-            return;
-        }
+        if (uri == null) return;
 
-        httpCommand = httpCommand.toUpperCase();
-
-        switch (httpCommand) {
-            case "GET":
-                getServlets.remove(uri);
-                break;
-            case "POST":
-                postServlets.remove(uri);
-                break;
-            case "DELETE":
-                deleteServlets.remove(uri);
-                break;
+        switch (httpCommand.toUpperCase()) {
+            case "GET" -> getServlets.remove(uri);
+            case "POST" -> postServlets.remove(uri);
+            case "DELETE" -> deleteServlets.remove(uri);
         }
     }
 
-    /**
-     * Starts the HTTP server to listen for and handle client connections.
-     */
+    @Override
     public void run() {
         try (ServerSocket serverSocket = new ServerSocket(port)) {
             this.serverSocket = serverSocket;
-            serverSocket.setSoTimeout(1000); // Set timeout for socket accept operations
+            serverSocket.setSoTimeout(SOCKET_TIMEOUT);
 
             while (!isServerStopped) {
                 try {
-                    // Accept a new client connection
                     Socket clientSocket = serverSocket.accept();
-
-                    // Handle the client request in a separate thread
-                    requestHandlerPool.submit(() -> {
-                        try {
-                            Thread.sleep(125); // Delay to ensure proper request reception
-                            BufferedReader requestReader = createBufferedReader(clientSocket);
-
-                            // Parse the incoming request
-                            RequestParser.RequestInfo requestInfo = RequestParser.parseRequest(requestReader);
-                            ConcurrentHashMap<String, Servlet> servletMap;
-
-                            if (requestInfo != null) {
-                                switch (requestInfo.getHttpCommand()) {
-                                    case "GET":
-                                        servletMap = getServlets;
-                                        break;
-                                    case "POST":
-                                        servletMap = postServlets;
-                                        break;
-                                    case "DELETE":
-                                        servletMap = deleteServlets;
-                                        break;
-                                    default:
-                                        throw new IllegalArgumentException("Unsupported HTTP command: " + requestInfo.getHttpCommand());
-                                }
-
-                                // Find the best matching servlet based on the longest URI match
-                                String bestMatchUri = "";
-                                Servlet matchingServlet = null;
-                                for (Map.Entry<String, Servlet> entry : servletMap.entrySet()) {
-                                    if (requestInfo.getUri().startsWith(entry.getKey()) && entry.getKey().length() > bestMatchUri.length()) {
-                                        bestMatchUri = entry.getKey();
-                                        matchingServlet = entry.getValue();
-                                    }
-                                }
-
-                                // Handle the request using the matching servlet
-                                if (matchingServlet != null) {
-                                    matchingServlet.handle(requestInfo, clientSocket.getOutputStream());
-                                }
-                            }
-                            requestReader.close();
-                        } catch (IOException | InterruptedException e) {
-                            e.printStackTrace();
-                        } finally {
-                            // Close the client connection
-                            try {
-                                clientSocket.close();
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    });
+                    handleClientRequest(clientSocket);
                 } catch (IOException e) {
-                    // Handle socket accept timeout exception
-                    if (isServerStopped) {
-                        break;
-                    }
+                    if (isServerStopped) break;
                 }
             }
         } catch (IOException e) {
@@ -178,47 +92,81 @@ public class MyHTTPServer extends Thread implements HTTPServer {
     }
 
     /**
-     * Creates a BufferedReader to read from the client socket.
-     *
-     * @param clientSocket The client socket.
-     * @return A BufferedReader to read from the socket.
-     * @throws IOException If an I/O error occurs.
+     * Handles an incoming client request asynchronously.
      */
-    private static BufferedReader createBufferedReader(Socket clientSocket) throws IOException {
-        InputStream inputStream = clientSocket.getInputStream();
-        int availableBytes = inputStream.available();
-        byte[] buffer = new byte[availableBytes];
-        int bytesRead = inputStream.read(buffer, 0, availableBytes);
-
-        return new BufferedReader(
-                new InputStreamReader(
-                        new ByteArrayInputStream(buffer, 0, bytesRead)
-                )
-        );
+    private void handleClientRequest(Socket clientSocket) {
+        requestHandlerPool.submit(() -> {
+            try {
+                Thread.sleep(REQUEST_DELAY);
+                processRequest(clientSocket);
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                closeClientSocket(clientSocket);
+            }
+        });
     }
 
     /**
-     * Starts the HTTP server to begin accepting and handling requests.
+     * Processes the HTTP request and routes it to the appropriate servlet.
      */
+    private void processRequest(Socket clientSocket) throws IOException {
+        BufferedReader requestReader = createBufferedReader(clientSocket);
+        RequestParser.RequestInfo requestInfo = RequestParser.parseRequest(requestReader);
+
+        if (requestInfo != null) {
+            Servlet matchingServlet = findMatchingServlet(requestInfo);
+            if (matchingServlet != null) {
+                matchingServlet.handle(requestInfo, clientSocket.getOutputStream());
+            }
+        }
+        requestReader.close();
+    }
+
+    /**
+     * Finds the best matching servlet for the request based on URI pattern.
+     */
+    private Servlet findMatchingServlet(RequestParser.RequestInfo requestInfo) {
+        ConcurrentHashMap<String, Servlet> servletMap = switch (requestInfo.getHttpCommand()) {
+            case "GET" -> getServlets;
+            case "POST" -> postServlets;
+            case "DELETE" -> deleteServlets;
+            default -> throw new IllegalArgumentException("Unsupported HTTP command: " + requestInfo.getHttpCommand());
+        };
+
+        return servletMap.entrySet().stream()
+                .filter(entry -> requestInfo.getUri().startsWith(entry.getKey()))
+                .max(Map.Entry.comparingByKey((a, b) -> a.length() - b.length()))
+                .map(Map.Entry::getValue)
+                .orElse(null);
+    }
+
+    private static BufferedReader createBufferedReader(Socket clientSocket) throws IOException {
+        InputStream inputStream = clientSocket.getInputStream();
+        byte[] buffer = new byte[inputStream.available()];
+        int bytesRead = inputStream.read(buffer);
+        return new BufferedReader(new InputStreamReader(new ByteArrayInputStream(buffer, 0, bytesRead)));
+    }
+
+    private void closeClientSocket(Socket clientSocket) {
+        try {
+            clientSocket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void start() {
         isServerStopped = false;
         super.start();
     }
 
-    /**
-     * Stops the HTTP server and shuts down the thread pool.
-     */
     public void close() {
         isServerStopped = true;
         requestHandlerPool.shutdownNow();
     }
 
-    /**
-     * Gets the thread pool used by the server for handling client requests.
-     *
-     * @return The thread pool.
-     */
-    public Object getThreadPool() {
+    public ExecutorService getThreadPool() {
         return requestHandlerPool;
     }
 }
