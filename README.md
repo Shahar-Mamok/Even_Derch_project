@@ -10,6 +10,7 @@ The architecture mimics a decentralized computation environment where each node 
 
 ## Project Structure
 
+```
 Even_Derch_project/
 ├── src/
 │   ├── config/   # Graph setup, agent configuration
@@ -18,6 +19,7 @@ Even_Derch_project/
 ├── test/         # Unit tests
 ├── .gitignore
 └── README.md     # You are here
+```
 
 
 ## How to Run
