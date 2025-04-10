@@ -11,15 +11,14 @@ The architecture mimics a decentralized computation environment where each node 
 ## Project Structure
 
 Even_Derch_project/
-│
 ├── src/
-│   ├── config/           - Graph setup, agent configuration  
-│   ├── graph/            - Core logic: agents, topics, messages  
-│   ├── server/           - HTTP server for running simulations  
-│
-├── test/                - Unit tests  
-├── .gitignore  
-└── README.md            - You are here  
+│   ├── config/   # Graph setup, agent configuration
+│   ├── graph/    # Core logic: agents, topics, messages
+│   ├── server/   # HTTP server for running simulations
+├── test/         # Unit tests
+├── .gitignore
+└── README.md     # You are here
+
 
 ## How to Run
 
