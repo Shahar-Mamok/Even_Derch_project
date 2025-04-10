@@ -13,7 +13,7 @@ The architecture mimics a decentralized computation environment where each node 
 This project simulates a distributed system composed of multiple agents...
 (each node acts independently while interacting...)
 
-![Graph Diagram](graph_diagram.png)
+![Graph Diagram](Graph.png)
 
 
 ## Project Structure
