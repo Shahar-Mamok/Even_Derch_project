@@ -8,10 +8,6 @@ This project simulates a distributed system composed of multiple agents operatin
 
 The architecture mimics a decentralized computation environment where each node acts independently while interacting with others to complete a larger computation task.
 
-## Project Overview
-
-This project simulates a distributed system composed of multiple agents...
-(each node acts independently while interacting...)
 
 ![Graph Diagram](Graph.png)
 
