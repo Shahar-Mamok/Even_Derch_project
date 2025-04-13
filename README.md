@@ -24,6 +24,17 @@ Even_Derch_project/
 ├── .gitignore
 └── README.md     # You are here
 ```
+## Design Patterns Used
+
+This project makes use of several software design patterns:
+
+- **Strategy Pattern**: The `BinOpAgent` class uses a `BinaryOperator<Double>` to allow interchangeable operations (such as addition or multiplication), demonstrating behavioral flexibility at runtime.
+  
+- **Singleton Pattern**: The `TopicManagerSingleton` ensures a single shared instance for managing topics across agents.
+
+- **Factory (via Reflection)**: In `GenericConfig`, agent classes are instantiated dynamically using reflection, enabling configurable and modular agent creation.
+
+- **Template Method Pattern**: The `Config` interface defines a structure for configuration classes, and `GenericConfig` provides a concrete implementation, customizing the steps of configuration creation and termination.
 
 
 ## How to Run
